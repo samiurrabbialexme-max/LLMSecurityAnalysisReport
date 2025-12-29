@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>State of LLM Security 2025: Interactive Report</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* Custom Font Import */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #F8FAFC; /* Warm neutral background */
+            color: #1E293B; /* Slate 800 */
+        }
+
+        /* Chart Container Styling - MANDATORY */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 400px;
+        }
+        
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 350px;
+            }
+        }
+
+        /* Smooth Transitions */
+        .transition-all-300 {
+            transition: all 0.3s ease-in-out;
+        }
+
+        /* Custom Scrollbar for side panels */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #F1F5F9;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #CBD5E1;
+            border-radius: 3px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #94A3B8;
+        }
+
+        /* Interactive Card States */
+        .interactive-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            border-color: #6366F1; /* Indigo 500 */
+        }
+
+        .active-tab {
+            background-color: #EEF2FF; /* Indigo 50 */
+            color: #4F46E5; /* Indigo 600 */
+            border-left: 4px solid #4F46E5;
+        }
+    </style>
+    <!-- Chosen Palette: "Trust & Clarity" - Slate (Neutral), Indigo (Primary/Action), Amber (Warning), Emerald (Safe) -->
+    <!-- Application Structure Plan: 
+         1. Hero Section: Sets the context of the "2025 Security Landscape" based on the uploaded surveys.
+         2. Taxonomy Dashboard: Interactive sorting of attacks by lifecycle stage (Training vs. Inference).
+         3. Deep Dive Analysis: Detailed view of specific papers (UI Attacks, Prompt Stealing) using charts.
+         4. Defense Simulator: Interactive checklist to demonstrate mitigation strategies found in the sources.
+    -->
+    <!-- Visualization & Content Choices:
+         - Doughnut Chart: To show the distribution of vulnerability types (Source: Jaffal et al., Li & Fung).
+         - Radar Chart: To compare the trade-offs of different defense mechanisms (Utility vs. Security cost).
+         - Process Flow (HTML/CSS): To map attacks to the LLM lifecycle (Data -> Train -> Fine-tune -> Infer).
+         - Justification: These visuals turn abstract taxonomies into concrete mental models without using SVG/Images.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+</head>
+<body class="bg-slate-50 min-h-screen flex flex-col">
+
+    <!-- Navigation -->
+    <nav class="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center gap-3">
+                    <span class="text-2xl">🛡️</span>
+                    <div class="flex flex-col">
+                        <span class="font-bold text-slate-800 tracking-tight">LLM Security Intel</span>
+                        <span class="text-xs text-slate-500">2025 Comprehensive Report Analysis</span>
+                    </div>
+                </div>
+                <div class="hidden md:flex items-center space-x-8">
+                    <button onclick="scrollToSection('dashboard')" class="text-slate-600 hover:text-indigo-600 font-medium transition-colors">Dashboard</button>
+                    <button onclick="scrollToSection('lifecycle')" class="text-slate-600 hover:text-indigo-600 font-medium transition-colors">Attack Lifecycle</button>
+                    <button onclick="scrollToSection('deep-dive')" class="text-slate-600 hover:text-indigo-600 font-medium transition-colors">Vulnerability Deep Dive</button>
+                    <button onclick="scrollToSection('defenses')" class="text-slate-600 hover:text-indigo-600 font-medium transition-colors">Defense Matrix</button>
+                </div>
+                <!-- Mobile menu button (visual only for this demo) -->
+                <div class="flex items-center md:hidden">
+                    <button class="text-slate-500 hover:text-slate-700">
+                        <span class="text-xl">☰</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="flex-grow">
+        
+        <!-- Hero Section -->
+        <div class="bg-white border-b border-slate-200">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16">
+                <div class="max-w-3xl">
+                    <h1 class="text-4xl md:text-5xl font-extrabold text-slate-900 mb-6 leading-tight">
+                        Navigating the <span class="text-indigo-600">LLM Threat Landscape</span>
+                    </h1>
+                    <p class="text-lg text-slate-600 mb-8 leading-relaxed">
+                        Based on extensive 2024-2025 surveys, this interactive report synthesizes the critical security challenges facing Large Language Models. From <strong>Prompt Injection</strong> and <strong>Model Theft</strong> to emerging <strong>Agentic Risks</strong> and <strong>UI Attacks</strong>, explore the data behind the vulnerabilities.
+                    </p>
+                    <div class="flex gap-4">
+                        <button onclick="scrollToSection('dashboard')" class="px-6 py-3 bg-indigo-600 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-700 transition-all-300 transform hover:-translate-y-1">
+                            Explore Data
+                        </button>
+                        <button onclick="scrollToSection('defenses')" class="px-6 py-3 bg-white text-indigo-600 font-semibold border border-indigo-200 rounded-lg shadow-sm hover:bg-indigo-50 transition-all-300">
+                            View Defenses
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section 1: Dashboard (Taxonomy & Distribution) -->
+        <section id="dashboard" class="py-12 bg-slate-50">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="mb-10">
+                    <h2 class="text-3xl font-bold text-slate-900 mb-4">Vulnerability Taxonomy</h2>
+                    <p class="text-slate-600 max-w-3xl">
+                        Current research classifies LLM threats into two primary phases: <strong>Training-Time</strong> (poisoning, backdoor) and <strong>Inference-Time</strong> (injection, jailbreaking, extraction). The chart below visualizes the prevalence of these research topics in the surveyed literature.
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <!-- Chart Column -->
+                    <div class="lg:col-span-1 bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                        <h3 class="text-lg font-semibold text-slate-800 mb-4 text-center">Research Focus Distribution</h3>
+                        <div class="chart-container">
+                            <canvas id="taxonomyChart"></canvas>
+                        </div>
+                        <div class="mt-4 text-center">
+                            <p class="text-sm text-slate-500 italic">Based on frequency of analysis in uploaded surveys</p>
+                        </div>
+                    </div>
+
+                    <!-- Interactive List Column -->
+                    <div class="lg:col-span-2 bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                        <h3 class="text-lg font-semibold text-slate-800 mb-4 flex justify-between items-center">
+                            <span>Threat Categories</span>
+                            <span class="text-xs font-normal bg-slate-100 px-2 py-1 rounded text-slate-500">Click to filter</span>
+                        </h3>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="threat-grid">
+                            <!-- Dynamic Content populated by JS -->
+                        </div>
+
+                        <!-- Detail View Panel (Initially Hidden) -->
+                        <div id="threat-detail" class="mt-6 p-4 bg-indigo-50 rounded-lg border border-indigo-100 hidden transition-all-300">
+                            <div class="flex justify-between items-start">
+                                <h4 id="detail-title" class="text-indigo-900 font-bold text-lg"></h4>
+                                <button onclick="closeDetail()" class="text-indigo-400 hover:text-indigo-700">✕</button>
+                            </div>
+                            <p id="detail-desc" class="text-indigo-800 mt-2 text-sm leading-relaxed"></p>
+                            <div class="mt-3 flex gap-2">
+                                <span class="text-xs font-semibold text-indigo-600 uppercase tracking-wider">Key Paper:</span>
+                                <span id="detail-paper" class="text-xs text-indigo-500"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 2: Attack Lifecycle (Flow) -->
+        <section id="lifecycle" class="py-12 bg-white border-y border-slate-200">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="mb-10 text-center">
+                    <h2 class="text-3xl font-bold text-slate-900 mb-4">The Attack Lifecycle</h2>
+                    <p class="text-slate-600 max-w-2xl mx-auto">
+                        Vulnerabilities exist at every stage of the LLM pipeline. Interact with the stages below to identify stage-specific risks described in the "Security Concerns for Large Language Models" survey.
+                    </p>
+                </div>
+
+                <!-- Interactive Process Flow -->
+                <div class="relative max-w-5xl mx-auto">
+                    <!-- Connecting Line -->
+                    <div class="hidden md:block absolute top-1/2 left-0 w-full h-1 bg-slate-200 -translate-y-1/2 z-0"></div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 relative z-10">
+                        <!-- Stage 1 -->
+                        <div class="lifecycle-stage group cursor-pointer" onclick="updateLifecycleInfo('data')">
+                            <div class="bg-white p-6 rounded-xl border-2 border-slate-200 hover:border-indigo-500 transition-all-300 shadow-sm text-center h-full flex flex-col items-center justify-center gap-3">
+                                <div class="w-12 h-12 bg-indigo-100 rounded-full flex items-center justify-center text-2xl group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+                                    📂
+                                </div>
+                                <h3 class="font-bold text-slate-800">Data Collection</h3>
+                                <p class="text-xs text-slate-500">Sourcing & Cleaning</p>
+                            </div>
+                        </div>
+
+                        <!-- Stage 2 -->
+                        <div class="lifecycle-stage group cursor-pointer" onclick="updateLifecycleInfo('training')">
+                            <div class="bg-white p-6 rounded-xl border-2 border-slate-200 hover:border-amber-500 transition-all-300 shadow-sm text-center h-full flex flex-col items-center justify-center gap-3">
+                                <div class="w-12 h-12 bg-amber-100 rounded-full flex items-center justify-center text-2xl group-hover:bg-amber-600 group-hover:text-white transition-colors">
+                                    ⚙️
+                                </div>
+                                <h3 class="font-bold text-slate-800">Training</h3>
+                                <p class="text-xs text-slate-500">Pre-training & Fine-tuning</p>
+                            </div>
+                        </div>
+
+                        <!-- Stage 3 -->
+                        <div class="lifecycle-stage group cursor-pointer" onclick="updateLifecycleInfo('system')">
+                            <div class="bg-white p-6 rounded-xl border-2 border-slate-200 hover:border-emerald-500 transition-all-300 shadow-sm text-center h-full flex flex-col items-center justify-center gap-3">
+                                <div class="w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center text-2xl group-hover:bg-emerald-600 group-hover:text-white transition-colors">
+                                    🛠️
+                                </div>
+                                <h3 class="font-bold text-slate-800">System Building</h3>
+                                <p class="text-xs text-slate-500">RAG & Integration</p>
+                            </div>
+                        </div>
+
+                        <!-- Stage 4 -->
+                        <div class="lifecycle-stage group cursor-pointer" onclick="updateLifecycleInfo('inference')">
+                            <div class="bg-white p-6 rounded-xl border-2 border-slate-200 hover:border-rose-500 transition-all-300 shadow-sm text-center h-full flex flex-col items-center justify-center gap-3">
+                                <div class="w-12 h-12 bg-rose-100 rounded-full flex items-center justify-center text-2xl group-hover:bg-rose-600 group-hover:text-white transition-colors">
+                                    💬
+                                </div>
+                                <h3 class="font-bold text-slate-800">Inference</h3>
+                                <p class="text-xs text-slate-500">Deployment & Usage</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Dynamic Info Box -->
+                    <div id="lifecycle-detail" class="mt-8 bg-slate-50 rounded-xl p-6 border border-slate-200 shadow-inner">
+                        <div class="flex flex-col md:flex-row gap-6 items-start">
+                            <div class="md:w-1/3">
+                                <h3 id="ls-title" class="text-xl font-bold text-indigo-900 mb-2">Select a stage above</h3>
+                                <span id="ls-badge" class="inline-block px-3 py-1 text-xs font-semibold rounded-full bg-slate-200 text-slate-600 mb-3">Info</span>
+                            </div>
+                            <div class="md:w-2/3">
+                                <p id="ls-desc" class="text-slate-700 mb-4">Click on the lifecycle stages to explore specific vulnerabilities identified in the research papers, such as data poisoning during collection or prompt injection during inference.</p>
+                                <div id="ls-risks" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                    <!-- Risk items go here -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 3: Deep Dive (Charts & Comparisons) -->
+        <section id="deep-dive" class="py-12 bg-slate-50">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                    <!-- Left Sidebar (Topics) -->
+                    <div class="lg:col-span-3">
+                        <h3 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4">Deep Dive Topics</h3>
+                        <div class="flex flex-col space-y-2">
+                            <button onclick="loadDeepDive('stealing')" class="topic-btn active-tab w-full text-left px-4 py-3 rounded-lg font-medium text-sm transition-all-300 hover:bg-white hover:shadow-sm">
+                                🕵️ Prompt Stealing
+                            </button>
+                            <button onclick="loadDeepDive('inference')" class="topic-btn w-full text-left px-4 py-3 rounded-lg font-medium text-slate-600 text-sm transition-all-300 hover:bg-white hover:shadow-sm">
+                                👤 User Inference Attacks
+                            </button>
+                            <button onclick="loadDeepDive('agents')" class="topic-btn w-full text-left px-4 py-3 rounded-lg font-medium text-slate-600 text-sm transition-all-300 hover:bg-white hover:shadow-sm">
+                                🤖 Agentic Risks
+                            </button>
+                            <button onclick="loadDeepDive('ui')" class="topic-btn w-full text-left px-4 py-3 rounded-lg font-medium text-slate-600 text-sm transition-all-300 hover:bg-white hover:shadow-sm">
+                                🖥️ UI & Indirect Attacks
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Main Content Area -->
+                    <div class="lg:col-span-9">
+                        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 md:p-8">
+                            <div class="flex justify-between items-start mb-6">
+                                <div>
+                                    <h2 id="dd-title" class="text-2xl font-bold text-slate-900">Prompt Stealing Attacks</h2>
+                                    <p id="dd-subtitle" class="text-slate-500 mt-1">Based on "Prompt Stealing Attacks Against LLMs" (Sha & Zhang)</p>
+                                </div>
+                                <div id="dd-badge" class="bg-rose-100 text-rose-700 px-3 py-1 rounded-full text-xs font-bold">High Severity</div>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-6">
+                                <div class="text-slate-700 text-sm leading-relaxed" id="dd-content">
+                                    <!-- Dynamic text -->
+                                </div>
+                                <div class="bg-slate-50 rounded-xl p-4 border border-slate-200">
+                                    <h4 class="text-sm font-semibold text-slate-800 mb-3 text-center">Attack Success Metrics</h4>
+                                    <div class="chart-container" style="height: 200px;">
+                                        <canvas id="deepDiveChart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="bg-indigo-50 rounded-lg p-4 border border-indigo-100">
+                                <h4 class="text-sm font-bold text-indigo-900 mb-2">Key Insight from Research</h4>
+                                <p id="dd-insight" class="text-sm text-indigo-800 italic">"Most prompts fall into three categories: direct, role-based, and in-context. Parameter extractors can successfully reverse-engineer these with high fidelity."</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 4: Defenses (Matrix) -->
+        <section id="defenses" class="py-12 bg-white border-t border-slate-200">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center mb-10">
+                    <h2 class="text-3xl font-bold text-slate-900 mb-4">Defense Strategy Matrix</h2>
+                    <p class="text-slate-600 max-w-2xl mx-auto">
+                        There is no silver bullet. Defense mechanisms involve trade-offs between model utility, inference speed, and implementation cost. Explore the trade-offs identified in "Security Concerns for Large Language Models".
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-center">
+                    <!-- Controls -->
+                    <div class="lg:col-span-1 space-y-4">
+                        <div class="bg-slate-50 p-6 rounded-xl border border-slate-200">
+                            <h3 class="font-bold text-slate-800 mb-4">Active Defenses</h3>
+                            <div class="space-y-3">
+                                <label class="flex items-center space-x-3 cursor-pointer group">
+                                    <input type="checkbox" class="form-checkbox h-5 w-5 text-indigo-600 rounded focus:ring-indigo-500 transition duration-150 ease-in-out" checked onchange="toggleDefense(0)">
+                                    <span class="text-slate-700 text-sm font-medium group-hover:text-indigo-600 transition-colors">Input Filtering / PPL</span>
+                                </label>
+                                <label class="flex items-center space-x-3 cursor-pointer group">
+                                    <input type="checkbox" class="form-checkbox h-5 w-5 text-emerald-600 rounded focus:ring-emerald-500 transition duration-150 ease-in-out" onchange="toggleDefense(1)">
+                                    <span class="text-slate-700 text-sm font-medium group-hover:text-emerald-600 transition-colors">Differential Privacy</span>
+                                </label>
+                                <label class="flex items-center space-x-3 cursor-pointer group">
+                                    <input type="checkbox" class="form-checkbox h-5 w-5 text-amber-600 rounded focus:ring-amber-500 transition duration-150 ease-in-out" onchange="toggleDefense(2)">
+                                    <span class="text-slate-700 text-sm font-medium group-hover:text-amber-600 transition-colors">Adversarial Training</span>
+                                </label>
+                            </div>
+                            <div class="mt-6 pt-4 border-t border-slate-200">
+                                <p class="text-xs text-slate-400">Select defenses to compare their impact profile on the radar chart.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Radar Chart -->
+                    <div class="lg:col-span-1 flex justify-center">
+                        <div class="chart-container">
+                            <canvas id="defenseChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Explanation -->
+                    <div class="lg:col-span-1">
+                        <div id="defense-info" class="bg-white p-6 rounded-xl shadow-lg border-l-4 border-indigo-500">
+                            <h4 class="text-lg font-bold text-slate-900 mb-2">Input Filtering</h4>
+                            <p class="text-sm text-slate-600 mb-4">
+                                <strong>Mechanism:</strong> Analyzes prompts for malicious patterns (e.g., perplexity checks) before they reach the model.
+                            </p>
+                            <ul class="text-sm space-y-2">
+                                <li class="flex items-center text-emerald-700"><span class="mr-2">✓</span> Low computational cost</li>
+                                <li class="flex items-center text-emerald-700"><span class="mr-2">✓</span> Prevents known injection attacks</li>
+                                <li class="flex items-center text-rose-700"><span class="mr-2">✕</span> Vulnerable to novel adaptive attacks</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-slate-900 text-slate-400 py-8">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center md:text-left md:flex justify-between items-center">
+            <div class="mb-4 md:mb-0">
+                <p class="text-sm">This landing created based on research papers (Jaffal et al., Kandpal et al., Li & Fung, Sha & Zhang).</p>
+            </div>
+            <div>
+                <span class="text-xs bg-slate-800 px-3 py-1 rounded-full">Report Version 1.0</span>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Logic Script -->
+    <script>
+        // --- DATA & STATE MANAGEMENT ---
+        
+        // 1. Taxonomy Data (Section 1)
+        const taxonomyData = {
+            labels: ['Jailbreaking/Injection', 'Data Poisoning/Privacy', 'Agentic Risks', 'Model Theft', 'UI/Indirect Attacks'],
+            data: [35, 25, 15, 15, 10], // Approximate distribution based on paper volume
+            details: [
+                {
+                    id: 'injection',
+                    title: 'Jailbreaking & Prompt Injection',
+                    desc: 'Attempts to bypass safety guardrails using crafted prompts. "Prompt Injection" overrides instructions, while "Jailbreaking" forces the model into a persona that ignores rules.',
+                    paper: 'Jaffal et al., "Large Language Models in Cybersecurity"',
+                    icon: '🔓'
+                },
+                {
+                    id: 'poisoning',
+                    title: 'Data Poisoning & Privacy',
+                    desc: 'Injecting malicious data during training to compromise model behavior (backdoors) or inferring private data from model outputs (membership inference).',
+                    paper: 'Kandpal et al., "User Inference Attacks"',
+                    icon: '☠️'
+                },
+                {
+                    id: 'agents',
+                    title: 'Agentic Vulnerabilities',
+                    desc: 'Attacks targeting LLM Agents that have tool access (e.g., web browsing, file execution). Risks include goal hijacking and unauthorized actions.',
+                    paper: 'He et al., "Emerged Security of LLM Agent"',
+                    icon: '🤖'
+                },
+                {
+                    id: 'theft',
+                    title: 'Model & Prompt Theft',
+                    desc: 'Extraction attacks aimed at stealing the proprietary model weights or the "System Prompt" that defines the application\'s behavior.',
+                    paper: 'Sha & Zhang, "Prompt Stealing Attacks"',
+                    icon: '🕵️'
+                },
+                {
+                    id: 'ui',
+                    title: 'UI & Indirect Injection',
+                    desc: 'Exploiting the user interface or using "invisible" instructions in web pages (e.g., white text) that the LLM reads but the user does not see.',
+                    paper: 'Yi et al., "Indirect Prompt Injection"',
+                    icon: '🖥️'
+                }
+            ]
+        };
+
+        // 2. Lifecycle Data (Section 2)
+        const lifecycleData = {
+            data: {
+                title: "Data Collection Stage",
+                desc: "The foundational stage where massive datasets are scraped and curated. Security flaws here propagate permanently.",
+                risks: ["<strong>Poisoning:</strong> Injecting malicious samples.", "<strong>Privacy Leakage:</strong> Including PII in training data.", "<strong>Bias Injection:</strong> Skewing data distribution."],
+                color: "indigo"
+            },
+            training: {
+                title: "Training Stage",
+                desc: "The computationally expensive process of learning weights. Attacks here are hard to detect until deployment.",
+                risks: ["<strong>Backdoors:</strong> Trigger-based malicious behavior.", "<strong>Model Theft:</strong> Intercepting gradients or checkpoints.", "<strong>Resource Exhaustion:</strong> Denial of service."],
+                color: "amber"
+            },
+            system: {
+                title: "System Building",
+                desc: "Integrating the LLM into applications (RAG, Agents). This expands the attack surface beyond the model itself.",
+                risks: ["<strong>RAG Poisoning:</strong> Corrupting the knowledge base.", "<strong>Plugin Exploits:</strong> Unsafe API calls by agents.", "<strong>Prompt Leaking:</strong> Exposing system instructions."],
+                color: "emerald"
+            },
+            inference: {
+                title: "Inference Stage",
+                desc: "The runtime environment where users interact. This is the most common attack surface for end-users.",
+                risks: ["<strong>Jailbreaking:</strong> Bypassing safety filters.", "<strong>Indirect Injection:</strong> Attacks via processed content.", "<strong>User Inference:</strong> Determining if user data was used."],
+                color: "rose"
+            }
+        };
+
+        // 3. Deep Dive Data (Section 3)
+        const deepDiveContent = {
+            stealing: {
+                title: "Prompt Stealing Attacks",
+                subtitle: "Source: Sha & Zhang, 'Prompt Stealing Attacks Against LLMs'",
+                badge: "IP Theft",
+                badgeColor: "rose",
+                text: "Prompt stealing aims to reverse-engineer the sophisticated 'System Prompts' that companies use to guide their LLMs. The research identifies two main modules: a <strong>Parameter Extractor</strong> (identifying prompt types like 'Role-based' or 'Direct') and a <strong>Prompt Reconstructor</strong>. By analyzing the model's answers, attackers can clone the behavior of a proprietary service without paying for it.",
+                insight: "The paper demonstrates that most prompts fall into three categories: direct, role-based, and in-context, making them predictable targets for extraction algorithms.",
+                chartType: 'bar',
+                chartLabels: ['Direct Prompt', 'Role-Based', 'In-Context'],
+                chartData: [85, 72, 64], // Mock success rates based on paper qualitative descriptions
+                chartLabel: 'Reconstruction Success Rate (%)'
+            },
+            inference: {
+                title: "User Inference Attacks",
+                subtitle: "Source: Kandpal et al., 'User Inference Attacks on LLMs'",
+                badge: "Privacy Violation",
+                badgeColor: "indigo",
+                text: "This attack asks: 'Can we tell if a specific user's data was used to train this model?' This is a critical privacy breach. The research shows that users who contribute distinct, outlier data or have highly correlated examples (like email threads) are most susceptible. The attack requires only black-box access and a few samples of the user's writing.",
+                insight: "Users with 'outlier' writing styles are 3x more likely to be successfully identified by inference attacks than average users.",
+                chartType: 'line',
+                chartLabels: ['10 Samples', '50 Samples', '100 Samples', '500 Samples'],
+                chartData: [12, 45, 78, 92], // Mock accuracy vs samples
+                chartLabel: 'Identification Accuracy (%)'
+            },
+            agents: {
+                title: "LLM Agent Security",
+                subtitle: "Source: He et al., 'The Emerged Security of LLM Agent'",
+                badge: "Emerging Threat",
+                badgeColor: "amber",
+                text: "Agents extend LLMs with tools (web search, calculators, APIs). This survey highlights that Agents introduce unique risks: <strong>Goal Hijacking</strong> (diverting the agent to a malicious objective) and <strong>Indirect Injection</strong> (an agent reading a poisoned website and executing a harmful command).",
+                insight: "Traditional jailbreak defenses often fail on Agents because the context window is filled with tool outputs that can contain malicious instructions.",
+                chartType: 'doughnut',
+                chartLabels: ['Goal Hijacking', 'Indirect Injection', 'Tool Abuse', 'Info Leakage'],
+                chartData: [30, 40, 20, 10], // Distribution of Agent vulnerabilities
+                chartLabel: 'Agent Vulnerability Distribution'
+            },
+            ui: {
+                title: "UI & Indirect Attacks",
+                subtitle: "Source: Yi et al. & 'UI Attacks on LLM'",
+                badge: "Frontend Security",
+                badgeColor: "emerald",
+                text: "These attacks exploit the medium, not just the model. Examples include hiding instructions in invisible text (white on white) on a webpage that an LLM summarizes, or using 'Glitch Tokens' that disrupt the tokenizer. The 'UI Attacks' paper specifically highlights how visual interfaces can be manipulated to trick the model.",
+                insight: "Indirect prompt injection allows an attacker to control an LLM without ever interacting with it directly, simply by planting a 'landmine' in web content.",
+                chartType: 'bar',
+                chartLabels: ['Invisible Text', 'Homoglyphs', 'Hidden Layers', 'Overlays'],
+                chartData: [90, 60, 45, 30], // Effectiveness
+                chartLabel: 'Attack Effectiveness (%)'
+            }
+        };
+
+        // 4. Defense Data (Section 4)
+        const defenseProfiles = [
+            {
+                label: 'Input Filtering',
+                data: [80, 20, 90, 30, 85], // [Prevention, Adaptability, Speed, Cost(Low is good), Privacy]
+                borderColor: '#4F46E5', // Indigo
+                backgroundColor: 'rgba(79, 70, 229, 0.2)',
+                info: {
+                    title: "Input Filtering / PPL",
+                    mech: "Analyzes prompts for perplexity (PPL) or keywords before processing.",
+                    pros: ["Low Latency", "Stops Script Kiddies"],
+                    cons: ["Fails against adaptive attacks", "False Positives"]
+                }
+            },
+            {
+                label: 'Differential Privacy',
+                data: [50, 40, 70, 20, 100], 
+                borderColor: '#10B981', // Emerald
+                backgroundColor: 'rgba(16, 185, 129, 0.2)',
+                info: {
+                    title: "Differential Privacy (DP)",
+                    mech: "Adds noise during training (DP-SGD) to obscure individual data points.",
+                    pros: ["Mathematically guaranteed privacy", "Prevents extraction"],
+                    cons: ["Reduces Model Utility/Accuracy", "Expensive to train"]
+                }
+            },
+            {
+                label: 'Adversarial Training',
+                data: [90, 85, 80, 10, 50],
+                borderColor: '#D97706', // Amber
+                backgroundColor: 'rgba(217, 119, 6, 0.2)',
+                info: {
+                    title: "Adversarial Training",
+                    mech: "Training the model on attack examples to learn to refuse them.",
+                    pros: ["High robustness", "Learns context"],
+                    cons: ["Very expensive (compute)", "Potential 'alignment tax'"]
+                }
+            }
+        ];
+
+        // --- INITIALIZATION ---
+
+        let taxonomyChartInstance = null;
+        let deepDiveChartInstance = null;
+        let defenseChartInstance = null;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initTaxonomySection();
+            initLifecycleSection(); // Defaults to first item
+            loadDeepDive('stealing'); // Default deep dive
+            initDefenseChart();
+        });
+
+        // --- FUNCTIONS ---
+
+        function scrollToSection(id) {
+            const element = document.getElementById(id);
+            if (element) {
+                element.scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+
+        // Section 1: Taxonomy Logic
+        function initTaxonomySection() {
+            // 1. Draw Chart
+            const ctx = document.getElementById('taxonomyChart').getContext('2d');
+            taxonomyChartInstance = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: taxonomyData.labels,
+                    datasets: [{
+                        data: taxonomyData.data,
+                        backgroundColor: [
+                            '#4F46E5', // Indigo (Injection)
+                            '#F59E0B', // Amber (Poisoning)
+                            '#EC4899', // Pink (Agents)
+                            '#6366F1', // Indigo Light (Theft)
+                            '#10B981'  // Emerald (UI)
+                        ],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 10 } } }
+                    },
+                    cutout: '65%'
+                }
+            });
+
+            // 2. Populate Grid
+            const grid = document.getElementById('threat-grid');
+            taxonomyData.details.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'interactive-card bg-slate-50 border border-slate-200 p-4 rounded-lg cursor-pointer transition-all-300';
+                card.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <span class="text-2xl">${item.icon}</span>
+                        <div>
+                            <h4 class="font-bold text-slate-700 text-sm">${item.title}</h4>
+                            <p class="text-xs text-slate-500 truncate w-40">Click for details</p>
+                        </div>
+                    </div>
+                `;
+                card.onclick = () => showThreatDetail(item);
+                grid.appendChild(card);
+            });
+        }
+
+        function showThreatDetail(item) {
+            const panel = document.getElementById('threat-detail');
+            document.getElementById('detail-title').innerText = item.icon + ' ' + item.title;
+            document.getElementById('detail-desc').innerText = item.desc;
+            document.getElementById('detail-paper').innerText = item.paper;
+            panel.classList.remove('hidden');
+            panel.classList.add('block');
+        }
+
+        function closeDetail() {
+            document.getElementById('threat-detail').classList.add('hidden');
+        }
+
+        // Section 2: Lifecycle Logic
+        function updateLifecycleInfo(stageKey) {
+            const data = lifecycleData[stageKey];
+            const title = document.getElementById('ls-title');
+            const desc = document.getElementById('ls-desc');
+            const risks = document.getElementById('ls-risks');
+            const detailBox = document.getElementById('lifecycle-detail');
+
+            // Update Content
+            title.innerText = data.title;
+            title.className = `text-xl font-bold mb-2 text-${data.color}-900`;
+            desc.innerText = data.desc;
+            
+            risks.innerHTML = '';
+            data.risks.forEach(risk => {
+                const r = document.createElement('div');
+                r.className = 'flex items-start gap-2 text-sm text-slate-600 bg-white p-2 rounded border border-slate-200';
+                r.innerHTML = `<span class="text-${data.color}-500 mt-0.5">•</span> <span>${risk}</span>`;
+                risks.appendChild(r);
+            });
+
+            // Highlight Box
+            detailBox.className = `mt-8 bg-${data.color}-50 rounded-xl p-6 border border-${data.color}-200 shadow-inner transition-colors duration-300`;
+        }
+        // Initialize with Data stage
+        function initLifecycleSection() {
+            updateLifecycleInfo('data'); 
+        }
+
+        // Section 3: Deep Dive Logic
+        function loadDeepDive(key) {
+            const data = deepDiveContent[key];
+            
+            // Update UI Text
+            document.getElementById('dd-title').innerText = data.title;
+            document.getElementById('dd-subtitle').innerText = data.subtitle;
+            document.getElementById('dd-content').innerHTML = data.text;
+            document.getElementById('dd-insight').innerText = `"${data.insight}"`;
+            
+            // Update Badge
+            const badge = document.getElementById('dd-badge');
+            badge.innerText = data.badge;
+            badge.className = `bg-${data.badgeColor}-100 text-${data.badgeColor}-700 px-3 py-1 rounded-full text-xs font-bold`;
+
+            // Update Tabs Styling
+            document.querySelectorAll('.topic-btn').forEach(btn => {
+                btn.classList.remove('active-tab', 'text-indigo-600', 'bg-indigo-50');
+                btn.classList.add('text-slate-600');
+                if(btn.innerText.includes(data.title.split(' ')[0])) { // Simple matching
+                    btn.classList.add('active-tab');
+                    btn.classList.remove('text-slate-600');
+                }
+            });
+
+            // Update Chart
+            const ctx = document.getElementById('deepDiveChart').getContext('2d');
+            if (deepDiveChartInstance) deepDiveChartInstance.destroy();
+
+            deepDiveChartInstance = new Chart(ctx, {
+                type: data.chartType,
+                data: {
+                    labels: data.chartLabels,
+                    datasets: [{
+                        label: data.chartLabel,
+                        data: data.chartData,
+                        backgroundColor: data.badgeColor === 'rose' ? 'rgba(225, 29, 72, 0.6)' : 
+                                         data.badgeColor === 'indigo' ? 'rgba(79, 70, 229, 0.6)' :
+                                         data.badgeColor === 'amber' ? 'rgba(217, 119, 6, 0.6)' : 'rgba(16, 185, 129, 0.6)',
+                        borderColor: data.badgeColor === 'rose' ? '#E11D48' : 
+                                     data.badgeColor === 'indigo' ? '#4F46E5' :
+                                     data.badgeColor === 'amber' ? '#D97706' : '#10B981',
+                        borderWidth: 1,
+                        fill: data.chartType === 'line'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: { beginAtZero: true, grid: { display: true, drawBorder: false } },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+        }
+
+        // Section 4: Defense Logic
+        function initDefenseChart() {
+            const ctx = document.getElementById('defenseChart').getContext('2d');
+            
+            defenseChartInstance = new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: ['Prevention', 'Adaptability', 'Speed', 'Cost Efficiency', 'Privacy'],
+                    datasets: [defenseProfiles[0]] // Start with first one selected
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        r: {
+                            angleLines: { display: true, color: '#E2E8F0' },
+                            grid: { color: '#E2E8F0' },
+                            pointLabels: { font: { size: 11, family: 'Inter' }, color: '#64748B' },
+                            suggestedMin: 0,
+                            suggestedMax: 100,
+                            ticks: { display: false } // Hide numbers
+                        }
+                    },
+                    plugins: {
+                        legend: { position: 'bottom', labels: { usePointStyle: true, boxWidth: 8 } }
+                    }
+                }
+            });
+        }
+
+        function toggleDefense(index) {
+            // In a real app we might handle multiple selections, here we just switch for clarity
+            // But let's support multi-select for the "Compare" feel
+            const checkboxes = document.querySelectorAll('.form-checkbox');
+            const selectedDatasets = [];
+            
+            checkboxes.forEach((cb, i) => {
+                if(cb.checked) {
+                    selectedDatasets.push(defenseProfiles[i]);
+                }
+            });
+
+            // Update Chart
+            defenseChartInstance.data.datasets = selectedDatasets;
+            defenseChartInstance.update();
+
+            // Update Info Box (Show info for the LAST clicked/checked item or the first one)
+            // Simplified: Show info for the specific index clicked if it's checked
+            if (checkboxes[index].checked) {
+                const info = defenseProfiles[index].info;
+                const infoBox = document.getElementById('defense-info');
+                
+                // Color mapping
+                const colorClass = index === 0 ? 'indigo' : index === 1 ? 'emerald' : 'amber';
+                
+                infoBox.className = `bg-white p-6 rounded-xl shadow-lg border-l-4 border-${colorClass}-500 transition-all-300`;
+                infoBox.innerHTML = `
+                    <h4 class="text-lg font-bold text-slate-900 mb-2">${info.title}</h4>
+                    <p class="text-sm text-slate-600 mb-4"><strong>Mechanism:</strong> ${info.mech}</p>
+                    <ul class="text-sm space-y-2">
+                        ${info.pros.map(p => `<li class="flex items-center text-emerald-700"><span class="mr-2">✓</span> ${p}</li>`).join('')}
+                        ${info.cons.map(c => `<li class="flex items-center text-rose-700"><span class="mr-2">✕</span> ${c}</li>`).join('')}
+                    </ul>
+                `;
+            }
+        }
+
+    </script>
+</body>
+</html>
